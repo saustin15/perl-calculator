@@ -3,6 +3,19 @@
 use Tk;
 use strict;
 use Math::Trig;
+use Tk::DialogBox;
+use Tk::JPEG;
+use Tk::Dialog;
+use strict;
+
+#code to print a dialog message window
+#$mw->optionAdd('*font', 'Courier 14');
+#my $d=$mw->Dialog(-title => "Error!!", -text => "Error. Enter Valid Math Statement. \n Would you like to try again?",
+#-buttons => [ qw/ Yes Cancel / ]);
+#if ($d->Show eq "Yes") {
+#  halt();
+#  }
+#
 
 ##### MAIN WINDOW CREATION ##########
 my $mw = MainWindow->new;
