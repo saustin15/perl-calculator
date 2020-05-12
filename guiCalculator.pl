@@ -7,7 +7,7 @@ use Tk::DialogBox;
 use Tk::JPEG;
 use Tk::Dialog;
 use strict;
-
+use Data::Dumper;
 #code to print a dialog message window
 #$mw->optionAdd('*font', 'Courier 14');
 #my $d=$mw->Dialog(-title => "Error!!", -text => "Error. Enter Valid Math Statement. \n Would you like to try again?",
@@ -22,7 +22,39 @@ my $mw = MainWindow->new;
 $mw->geometry("600x600");
 $mw->Label(-text => 'Perl Calculator')->pack;
 $mw->optionAdd('*font', 'Courier 35');
-my $entry = $mw->Entry(-width => 20) -> pack;
+my $textvar = 1;
+my $entry = $mw->Entry(
+                       -validate => 'key', #Check for Key Stroke
+                       -validatecommand=> #subroutine below executes when key stroke pressed
+                       sub {
+                            # Does String Contain Numbers
+                            if ($_[0] =~ m/[0-9]*/) {
+                                # Check if Letters are used
+                                if ($_[0] =~ m/[a-zA-z]/) {
+                                    # Check if the following valid operators are used
+                                    if ($_[0] =~ m/sin\(/
+                                        || $_[0] =~ m/cos\(/
+                                        || $_[0] =~ m/tan\(/
+                                        || $_[0] =~ m/sqrt\(/
+                                        || $_[0] =~ m/exp\(/
+                                        || $_[0] =~ m/log\(/
+                                        || $_[0] =~ m/\^\(/)
+                                    {
+                                        return 1;
+                                    }
+                                    else {
+                                        $mw->optionAdd('*font', 'Courier 14');
+                                        my $dialog=$mw->Dialog(-title => "Error!!", -text => "Error. Enter Valid Calculator Math Statement. \n Please try again.",
+                                            -buttons => [ qw/ Okay / ]);
+                                        if ($dialog->Show eq "Okay") {
+                                            return 0;
+                                        }
+                                    }
+                                }
+                                return 1;
+                            }
+                       },
+                       -width => 20) -> pack;
 
 ##### CALCULATOR LAYOUT SETUP ########
 my $calculator = $mw->Frame()->grid(
@@ -201,8 +233,7 @@ $clear->Button(
     -text=> 'Enter',
     -width =>10,
     -padx => 20,
-    -command => sub{ 
-        
+    -command => sub{
         my @temp = split(/(\()|(\))|(\*)|(-)|(\+)|(\/)|(\d+\.?\d*)|(tan)|(sin)|(cos)|(exp)|(ln)|(sqrt)|(^)|/,$entry->get);
         my @equation;
         my $trigFlag = 0;
@@ -239,10 +270,19 @@ $clear->Button(
                  $problem .= $_;
              }
         }
-        print($problem . "\n");
-        my $result =  eval $problem;
-        $entry->delete(0, length($entry->get));
-        $entry->insert(0, $result);
+        
+        # If problem can be evaluated, do so. Otherwise, Error Message.
+        if (my $result = eval $problem) {
+            $entry->delete(0, length($entry->get));
+            $entry->insert(0, $result);
+        } else {
+            $mw->optionAdd('*font', 'Courier 14');
+            my $dialog=$mw->Dialog(-title => "Error", -text => "Invalid Operation. \n Please try again.",
+                -buttons => [ qw/ Okay / ]);
+            if ($dialog->Show eq "Okay") {
+                return 0;
+            }
+        }
     },
 )->grid(-column=>3, -row=>0);
 
